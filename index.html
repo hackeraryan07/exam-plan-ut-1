@@ -1,0 +1,680 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>FE Unit Test Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: one scrolling column capped at 1120px. Bottom tab bar on phones, left rail from 840px up.
+   Look: exam-paper cool white with ink-blue accent. Each subject carries its own hue tag. */
+:root {
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-head: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+
+  --bg: oklch(0.975 0.006 255);
+  --surface: oklch(0.995 0.003 255);
+  --surface-2: oklch(0.953 0.009 255);
+  --fg: oklch(0.25 0.025 255);
+  --muted: oklch(0.47 0.02 255);
+  --line: oklch(0.89 0.01 255);
+  --accent: oklch(0.5 0.17 255);
+  --accent-fg: oklch(0.99 0.003 255);
+  --accent-soft: oklch(0.94 0.035 255);
+  --ok: oklch(0.5 0.13 155);
+  --ok-soft: oklch(0.94 0.04 155);
+  --warn: oklch(0.5 0.17 35);
+  --warn-soft: oklch(0.95 0.035 50);
+  --focus: oklch(0.55 0.2 255);
+  --shadow: 0 1px 2px oklch(0.3 0.03 255 / 0.08);
+  --tag-bg-l: 0.94; --tag-bg-c: 0.04; --tag-fg-l: 0.38; --tag-fg-c: 0.12;
+  --nav-bg: oklch(0.995 0.003 255 / 0.96);
+
+  --s1: 8px; --s2: 16px; --s3: 24px; --s4: 32px; --s5: 48px;
+  --step--1: clamp(0.82rem, 0.8rem + 0.1vw, 0.9rem);
+  --step-0: 1rem;
+  --step-1: clamp(1.15rem, 1.08rem + 0.35vw, 1.4rem);
+  --step-2: clamp(1.45rem, 1.3rem + 0.8vw, 2rem);
+  --step-3: clamp(1.8rem, 1.5rem + 1.4vw, 2.7rem);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: oklch(0.17 0.012 255);
+    --surface: oklch(0.215 0.014 255);
+    --surface-2: oklch(0.26 0.016 255);
+    --fg: oklch(0.94 0.008 255);
+    --muted: oklch(0.72 0.014 255);
+    --line: oklch(0.33 0.015 255);
+    --accent: oklch(0.74 0.14 255);
+    --accent-fg: oklch(0.17 0.02 255);
+    --accent-soft: oklch(0.29 0.05 255);
+    --ok: oklch(0.76 0.13 155);
+    --ok-soft: oklch(0.28 0.05 155);
+    --warn: oklch(0.78 0.13 45);
+    --warn-soft: oklch(0.29 0.05 45);
+    --focus: oklch(0.8 0.13 255);
+    --shadow: 0 1px 2px oklch(0 0 0 / 0.4);
+    --tag-bg-l: 0.3; --tag-bg-c: 0.06; --tag-fg-l: 0.86; --tag-fg-c: 0.1;
+    --nav-bg: oklch(0.215 0.014 255 / 0.96);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: oklch(0.17 0.012 255);
+  --surface: oklch(0.215 0.014 255);
+  --surface-2: oklch(0.26 0.016 255);
+  --fg: oklch(0.94 0.008 255);
+  --muted: oklch(0.72 0.014 255);
+  --line: oklch(0.33 0.015 255);
+  --accent: oklch(0.74 0.14 255);
+  --accent-fg: oklch(0.17 0.02 255);
+  --accent-soft: oklch(0.29 0.05 255);
+  --ok: oklch(0.76 0.13 155);
+  --ok-soft: oklch(0.28 0.05 155);
+  --warn: oklch(0.78 0.13 45);
+  --warn-soft: oklch(0.29 0.05 45);
+  --focus: oklch(0.8 0.13 255);
+  --shadow: 0 1px 2px oklch(0 0 0 / 0.4);
+  --tag-bg-l: 0.3; --tag-bg-c: 0.06; --tag-fg-l: 0.86; --tag-fg-c: 0.1;
+  --nav-bg: oklch(0.215 0.014 255 / 0.96);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 var(--step-0)/1.55 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 104px;
+  -webkit-text-size-adjust: 100%;
+}
+h1, h2, h3, h4 { font-family: var(--font-head); line-height: 1.2; margin: 0; text-wrap: balance; }
+h1 { font-size: var(--step-2); font-weight: 700; }
+h2 { font-size: var(--step-1); font-weight: 700; }
+h3 { font-size: 1.05rem; font-weight: 700; }
+p { margin: 0; }
+ul, ol { margin: 0; padding-left: 1.2em; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.muted { color: var(--muted); }
+.small { font-size: var(--step--1); }
+.num { font-variant-numeric: tabular-nums; }
+
+.app { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s3); }
+.brand { display: flex; flex-direction: column; gap: 4px; padding-block: var(--s1); }
+.brand b { font-family: var(--font-head); font-size: 1.1rem; }
+.brand span { color: var(--muted); font-size: var(--step--1); }
+main { display: flex; flex-direction: column; gap: var(--s3); min-width: 0; }
+
+.nav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+  background: var(--nav-bg); border-top: 1px solid var(--line);
+  padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  backdrop-filter: blur(8px);
+}
+.nav a {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  min-height: 56px; border-radius: 12px; color: var(--muted); text-decoration: none; font-size: 0.78rem; font-weight: 500;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+.nav a svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav a:hover { background: var(--surface-2); }
+.nav a[aria-current="page"] { color: var(--accent); background: var(--accent-soft); }
+
+@media (min-width: 840px) {
+  body { padding-block: 32px 48px; }
+  .app { grid-template-columns: 208px minmax(0, 1fr); gap: var(--s4); align-items: start; }
+  .rail { position: sticky; top: 32px; display: flex; flex-direction: column; gap: var(--s3); }
+  .nav { position: static; display: flex; flex-direction: column; gap: 4px; background: none; border: 0; padding: 0; backdrop-filter: none; }
+  .nav a { flex-direction: row; justify-content: flex-start; gap: 12px; padding: 0 12px; min-height: 44px; font-size: 0.95rem; }
+}
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: var(--s2); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: var(--s2); min-width: 0; }
+@media (min-width: 600px) { .card { padding: var(--s3); } }
+.grid { display: grid; gap: var(--s2); grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+.row { display: flex; gap: var(--s1); align-items: center; flex-wrap: wrap; }
+.between { justify-content: space-between; }
+
+.tag { --h: 255; display: inline-flex; align-items: center; min-height: 24px; padding: 0 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 600;
+  background: oklch(var(--tag-bg-l) var(--tag-bg-c) var(--h)); color: oklch(var(--tag-fg-l) var(--tag-fg-c) var(--h)); white-space: nowrap; }
+.tag.exam { background: var(--warn-soft); color: var(--warn); }
+.tag.rest { background: var(--ok-soft); color: var(--ok); }
+
+.bar { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.bar > span { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width 260ms cubic-bezier(.3,1.3,.5,1); }
+.bar.ok > span { background: var(--ok); }
+
+.hero { display: flex; flex-direction: column; gap: var(--s2); }
+.cd { display: flex; gap: var(--s2); flex-wrap: wrap; }
+.cd div { display: flex; flex-direction: column; min-width: 64px; }
+.cd b { font-family: var(--font-head); font-size: var(--step-3); line-height: 1; font-variant-numeric: tabular-nums; }
+.cd span { font-size: var(--step--1); color: var(--muted); }
+
+.block { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; padding: 12px 0; border-top: 1px solid var(--line); }
+.block:first-child { border-top: 0; }
+.chk { width: 44px; height: 44px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface); display: grid; place-items: center; margin: -8px 0 -8px -8px; transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease; }
+.chk svg { width: 22px; height: 22px; stroke: var(--accent-fg); stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
+.chk[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); }
+.chk[aria-pressed="true"] svg { opacity: 1; }
+.chk:active { transform: scale(0.94); }
+.block .body { display: flex; flex-direction: column; gap: 4px; }
+.block.done .body p { color: var(--muted); text-decoration: line-through; }
+.kind { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.kind.study { color: var(--accent); } .kind.revise { color: var(--ok); } .kind.exam { color: var(--warn); } .kind.rest { color: var(--muted); }
+
+.chips { display: flex; gap: var(--s1); overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.chip { flex: none; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-weight: 500; transition: background-color 120ms ease; }
+.chip:hover { background: var(--surface-2); }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+
+.topic { display: flex; flex-direction: column; gap: 10px; padding: 14px 0; border-top: 1px solid var(--line); }
+.topic:first-of-type { border-top: 0; }
+.topic h4 { font-size: 1rem; font-weight: 600; font-family: var(--font-body); }
+.topic .head { display: flex; gap: var(--s1); align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
+.mk { font-size: 0.76rem; font-weight: 600; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 1px 8px; white-space: nowrap; }
+.tog-row { display: flex; gap: var(--s1); }
+.tog { min-height: 44px; min-width: 96px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-weight: 600; font-size: 0.92rem; transition: background-color 120ms ease, color 120ms ease, transform 120ms ease; }
+.tog:hover { background: var(--surface-2); }
+.tog:active { transform: scale(0.97); }
+.tog.learn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.tog.revise[aria-pressed="true"] { background: var(--ok); border-color: var(--ok); color: var(--surface); }
+
+.files { display: flex; flex-direction: column; gap: 6px; }
+.files li { overflow-wrap: anywhere; }
+
+.day { gap: 12px; }
+.day.today { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.day.past { opacity: 0.62; }
+.day .block { padding: 10px 0; }
+.day .block .body p { font-size: 0.95rem; }
+
+details { border-top: 1px solid var(--line); }
+details:first-of-type { border-top: 0; }
+summary { list-style: none; min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: var(--s1); cursor: pointer; font-family: var(--font-head); font-weight: 700; font-size: 1.05rem; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; font-size: 1.4rem; color: var(--muted); }
+details[open] summary::after { content: "\2212"; }
+.eqs { display: flex; flex-direction: column; gap: 2px; padding-bottom: var(--s2); }
+.eqr { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; padding: 10px 12px; border-radius: 10px; }
+.eqr:nth-child(odd) { background: var(--surface-2); }
+.eql { font-size: var(--step--1); color: var(--muted); }
+.eq { font-size: 1rem; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+@media (min-width: 640px) { .eqr { grid-template-columns: 220px minmax(0, 1fr); gap: var(--s2); } }
+
+.btn { min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-weight: 600; }
+.btn:hover { background: var(--surface-2); }
+.btn.danger { color: var(--warn); border-color: var(--warn); }
+.steps { display: grid; gap: var(--s2); grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
+.step { display: flex; flex-direction: column; gap: 4px; padding: 12px; border-radius: 12px; background: var(--surface-2); }
+.step b { font-family: var(--font-head); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="app">
+  <aside class="rail">
+    <div class="brand"><b>FE Unit Test 1</b><span>Division A, Semester I, 2026-27</span></div>
+    <nav class="nav" aria-label="Main">
+      <a href="#today" data-tab="today"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span>Today</span></a>
+      <a href="#subjects" data-tab="subjects"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h10"/></svg><span>Subjects</span></a>
+      <a href="#plan" data-tab="plan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg><span>Plan</span></a>
+      <a href="#cheat-sheet" data-tab="cheat-sheet"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16H6z"/><path d="M9 9h6M9 13h6M9 17h3"/></svg><span>Formulas</span></a>
+    </nav>
+  </aside>
+  <main id="main" aria-live="polite"></main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var SUBJECTS = [
+    {
+      id: "phy", name: "Engineering Physics", short: "Physics", h: 235, exam: "2026-11-18", when: "Wed 18 Nov, 9:00 to 10:00 AM",
+      files: ["Handbook question bank_ Engg. Physic Unit 1&2.pdf (start here)", "Fundamental of Photonic NPD Notes.pdf", "Laser & Fibre Optics 2019-1.pdf", "05 - Quantum Mechanics - Theory.pdf"],
+      units: [
+        { name: "Unit 1: Fundamentals of Photonics", topics: [
+          { id: "p1a", t: "Laser basics", n: "Spontaneous and stimulated emission, population inversion, optical pumping, metastable state. Write each as a one-line definition.", m: "1M each" },
+          { id: "p1b", t: "Optical resonator and characteristics of laser", n: "Role of the resonator in producing laser light. Know one industrial application.", m: "3-4M" },
+          { id: "p1c", t: "CO2 laser", n: "Energy level diagram, construction, working. Draw and label it.", m: "6M" },
+          { id: "p1d", t: "Holography", n: "Principle, recording, reconstruction, difference from normal photography, why laser light is needed.", m: "6M" },
+          { id: "p1e", t: "Optical fibre basics", n: "Construction, total internal reflection, critical angle, acceptance angle, acceptance cone, numerical aperture.", m: "3-4M" },
+          { id: "p1f", t: "Fibre types", n: "Single mode vs multimode, step index vs graded index. Draw the refractive index profiles.", m: "6M" },
+          { id: "p1g", t: "Attenuation in fibre", n: "Absorption, dispersion, bending losses and ways to reduce them.", m: "6M" },
+          { id: "p1h", t: "Communication system block diagram", n: "Transmitter, channel, receiver with a fibre as the channel.", m: "3-4M" },
+          { id: "p1i", t: "Fibre numericals", n: "Solve all 11 examples in the question bank: critical angle, NA, acceptance angle, fractional index change.", m: "Numerical" }
+        ] },
+        { name: "Unit 2: Quantum Physics", topics: [
+          { id: "p2a", t: "de Broglie hypothesis", n: "Wavelength by analogy with radiation, in terms of kinetic energy, and for a charged particle through potential V. Three properties of matter waves.", m: "6M / 3-4M" },
+          { id: "p2b", t: "Wave function", n: "Meaning of psi, physical meaning of |psi| squared, normalization condition and why it is needed.", m: "3-4M" },
+          { id: "p2c", t: "Schrödinger time independent equation", n: "Derive it step by step and state its significance.", m: "6M" },
+          { id: "p2d", t: "Schrödinger time dependent equation", n: "Derive it. Learn the two derivations together.", m: "6M" },
+          { id: "p2e", t: "Particle in a one dimensional box", n: "Derive the energy for an infinite potential well.", m: "6M" },
+          { id: "p2f", t: "Tunneling and STM", n: "Tunneling effect, alpha decay, principle and working of the scanning tunneling microscope, applications.", m: "6M" },
+          { id: "p2g", t: "Quantum computing", n: "Qubit, superposition, entanglement, comparison with classical computing, applications.", m: "3-4M" },
+          { id: "p2h", t: "Quantum numericals", n: "Kinetic energy from wavelength, wavelength of a moving mass, ground state energy in a 2 angstrom well.", m: "Numerical" }
+        ] }
+      ]
+    },
+    {
+      id: "fpl", name: "Fundamentals of Programming Languages (C)", short: "FPL (C)", h: 160, exam: "2026-11-19", when: "Thu 19 Nov, 9:00 to 10:00 AM",
+      files: ["updated Handbook question bank-FPL-1 to 2Units.pdf (start here)", "Unit 1 ppt.pdf", "The Ultimate C Handbook.pdf", "FPLmanual-updated-20-09-2024(1).pdf", "Bitwise Operator in C.pdf", "FPL pyq june 2025.pdf (for question style, ignore Unit 3 onwards)"],
+      units: [
+        { name: "Unit 1: Program Planning and C Basics", topics: [
+          { id: "f1a", t: "Algorithm and flowchart", n: "Art of programming, algorithm to add two numbers, flowchart symbols, flowchart for area of a rectangle.", m: "Theory" },
+          { id: "f1b", t: "History and importance of C, character set", n: "Short points with real world uses. List the character classes.", m: "Theory" },
+          { id: "f1c", t: "Tokens, keywords, identifiers, constants, variables", n: "One example for each type of token.", m: "Theory" },
+          { id: "f1d", t: "Data types", n: "List the types with an example declaration for each.", m: "Theory" },
+          { id: "f1e", t: "Symbolic constants, const and volatile", n: "#define example, const variable, volatile variable.", m: "Theory" },
+          { id: "f1f", t: "Storage classes and scope", n: "auto, static, extern with examples. Local vs global variable scope.", m: "Theory" },
+          { id: "f1g", t: "Unit 1 programs by hand", n: "Hello World, 10 and 'R' with printf; scanf and printf for int and float; area of circle using #define PI 3.1428; area of rectangle.", m: "Program" }
+        ] },
+        { name: "Unit 2: Operators and Expressions", topics: [
+          { id: "f2a", t: "Arithmetic, relational and logical operators", n: "Table of operator, meaning, example.", m: "Theory" },
+          { id: "f2b", t: "Increment, decrement and assignment operators", n: "Prefix vs postfix with an example. Shorthand assignment such as +=.", m: "Theory" },
+          { id: "f2c", t: "Conditional, bitwise and special operators", n: "?: with an example, three bitwise operators, sizeof.", m: "Theory" },
+          { id: "f2d", t: "Expressions, precedence and associativity", n: "What an expression is, how it is evaluated, precedence order of arithmetic operators.", m: "Theory" },
+          { id: "f2e", t: "Mathematical functions", n: "sqrt, pow and similar functions from math.h.", m: "Theory" },
+          { id: "f2f", t: "Unit 2 programs by hand", n: "Cube of a number; square and square root; sizeof for int, char, float, double.", m: "Program" },
+          { id: "f2g", t: "Output tracing", n: "Work out the output of the logical operator program (a = 5, b = 5, c = 10) without running it.", m: "Program" }
+        ] }
+      ]
+    },
+    {
+      id: "mat", name: "Engineering Mathematics-I", short: "Maths-I", h: 30, exam: "2026-11-20", when: "Fri 20 Nov, 9:00 to 10:00 AM",
+      files: ["FE 2026-27.Engg Maths I. Unit 1 Question bank.pdf", "FE2026-27 Engg Maths I Unit 2 question bank.pdf", "The WhatsApp images in the Math 1 folder (check if they are notes or solutions)"],
+      units: [
+        { name: "Unit 1: Differential Calculus", topics: [
+          { id: "m1a", t: "Rolle's theorem", n: "Check the three conditions, then find c. Question bank problem 1.", m: "Problem" },
+          { id: "m1b", t: "Lagrange's mean value theorem", n: "Verify for tan inverse x on [0, 1]; prove the sin inverse inequality. Problems 2 and 3.", m: "Problem" },
+          { id: "m1c", t: "Taylor's series", n: "Expand polynomials in powers of (x + 2) or (x - 3); expand tan(x + h). Problems 4 to 7.", m: "Problem" },
+          { id: "m1d", t: "Maclaurin's series", n: "log(1 + sin x), [log(1 + x)] squared, root of (1 + sin x). Problems 8 to 11.", m: "Problem" },
+          { id: "m1e", t: "Fourier series, full range", n: "x squared and x on (-pi, pi), then deduce the series sum. Problems 12, 13, 15.", m: "Problem" },
+          { id: "m1f", t: "Fourier series, half range", n: "Cosine series for pi x - x squared on (0, pi). Problem 14.", m: "Problem" },
+          { id: "m1g", t: "L'Hospital's rule, Cauchy's MVT, harmonic analysis", n: "In the syllabus but not in the question bank. Solve 2 or 3 problems of each from your textbook.", m: "Syllabus" }
+        ] },
+        { name: "Unit 2: Partial Differentiation", topics: [
+          { id: "m2a", t: "Partial derivatives and mixed derivatives", n: "Show that the two mixed second derivatives are equal.", m: "Problem" },
+          { id: "m2b", t: "Laplace equation", n: "Prove u(xx) + u(yy) = 0 for the given function.", m: "Problem" },
+          { id: "m2c", t: "Composite functions and chain rule", n: "Change variables with x = f(u, v) and y = g(u, v). Draw the dependency tree first.", m: "Problem" },
+          { id: "m2d", t: "Euler's theorem, first order", n: "Find the degree n, then use x u(x) + y u(y) = n u.", m: "Problem" },
+          { id: "m2e", t: "Euler's theorem, second order", n: "x squared u(xx) + 2xy u(xy) + y squared u(yy) = n(n - 1) u.", m: "Problem" },
+          { id: "m2f", t: "Total derivative and change of variables", n: "dz/dt = z(x) dx/dt + z(y) dy/dt.", m: "Problem" },
+          { id: "m2g", t: "Limit and continuity basics", n: "Definitions and one example each. Syllabus only.", m: "Syllabus" }
+        ] }
+      ]
+    },
+    {
+      id: "bee", name: "Basic Electrical Engineering", short: "BEE", h: 85, exam: "2026-11-23", when: "Mon 23 Nov, 9:00 to 10:00 AM",
+      files: ["Final Notes of Unit 1 with Question Bank.pdf", "Final Notes of Unit 2 with Question Bank.pdf", "UNIT I-ELEMENTARY CONCEPTS AND DC CIRCUITS.pdf", "Loop Analysis Method.pdf", "be_first-year-fe-engineering_semester-1_2025_november_basic-electrical-engineering-pattern-2024.pdf (Q1 and Q2 only)"],
+      units: [
+        { name: "Unit 1: Elementary Concepts and DC Circuits", topics: [
+          { id: "b1a", t: "Basic quantities and Ohm's law", n: "Resistance, EMF, current, potential difference. One line each.", m: "1-2M" },
+          { id: "b1b", t: "Power system overview", n: "Single line diagram of generation, transmission, distribution. Name four components.", m: "6M" },
+          { id: "b1c", t: "Classification of networks", n: "Unilateral and bilateral, active and passive, linear and non linear.", m: "3M" },
+          { id: "b1d", t: "Series, parallel and star-delta", n: "Derive delta to star conversion.", m: "6M" },
+          { id: "b1e", t: "Kirchhoff's laws and loop analysis", n: "Write loop equations and find the current in the 5 ohm resistor.", m: "8M" },
+          { id: "b1f", t: "Superposition theorem", n: "State it, then solve one circuit by switching off sources one at a time.", m: "8M" }
+        ] },
+        { name: "Unit 2: Electromagnetism", topics: [
+          { id: "b2a", t: "Magnetic circuit quantities", n: "Flux density, field strength, permeability, MMF, reluctance with units.", m: "3-4M" },
+          { id: "b2b", t: "Series magnetic circuit with air gap", n: "Draw the iron ring and its equivalent electrical circuit; write the flux expression.", m: "6M" },
+          { id: "b2c", t: "Electric vs magnetic circuit", n: "Comparison table.", m: "3M" },
+          { id: "b2d", t: "Electromagnetic induction", n: "Faraday's laws, Fleming's right hand rule, statically and dynamically induced EMF.", m: "3-4M" },
+          { id: "b2e", t: "Self and mutual inductance", n: "Definitions, coefficient of coupling, relation between L1, L2 and M.", m: "6M" },
+          { id: "b2f", t: "Energy stored in an inductor", n: "Derive E = half L I squared.", m: "6M" },
+          { id: "b2g", t: "Magnetic circuit numericals", n: "Iron ring with an air gap: reluctance of iron, reluctance of gap, flux. Convert units first.", m: "8M" },
+          { id: "b2h", t: "Mutual inductance numerical", n: "Two coils on an iron ring: find M, L1 and L2.", m: "8M" }
+        ] }
+      ]
+    },
+    {
+      id: "gra", name: "Engineering Graphics", short: "Graphics", h: 330, exam: "2026-12-04", when: "Fri 4 Dec, 9:00 to 10:00 AM",
+      files: ["No study material in Drive yet. Add your college sheets or textbook to the engineering folder.", "FE 2024 Pattern Syllabus -16 July 2024_compressed.pdf (topic list only)"],
+      units: [
+        { name: "Unit 1: Fundamentals, Projection of Points and Lines", topics: [
+          { id: "g1a", t: "Drawing basics", n: "Instruments and their use, sheet sizes and layout, types of lines.", m: "Theory" },
+          { id: "g1b", t: "Dimensioning", n: "Methods of dimensioning and the general rules.", m: "Theory" },
+          { id: "g1c", t: "Projection of points", n: "Points in all four quadrants, first angle projection. Draw 4 problems.", m: "Drawing" },
+          { id: "g1d", t: "Line parallel to both planes", n: "Both views are true length.", m: "Drawing" },
+          { id: "g1e", t: "Line perpendicular to one plane", n: "One view is a point, the other is true length.", m: "Drawing" },
+          { id: "g1f", t: "Line inclined to one plane, parallel to the other", n: "True length and inclination are visible in one view.", m: "Drawing" },
+          { id: "g1g", t: "Line inclined to both planes", n: "The hardest line problem. Practise at least 4.", m: "Drawing" }
+        ] },
+        { name: "Unit 2: Projection of Planes", topics: [
+          { id: "g2a", t: "Plane parallel to one plane, perpendicular to the other", n: "One view is the true shape, the other is a line.", m: "Drawing" },
+          { id: "g2b", t: "Plane inclined to one plane, perpendicular to the other", n: "Draw in two stages.", m: "Drawing" },
+          { id: "g2c", t: "Plane inclined to both planes", n: "Draw in three stages.", m: "Drawing" },
+          { id: "g2d", t: "Mixed timed set", n: "2 line problems and 2 plane problems, 25 minutes each.", m: "Drawing" }
+        ] }
+      ]
+    }
+  ];
+
+  var SCHEDULE = [
+    { d: "2026-11-13", b: [["study", "Physics Unit 1 theory: laser basics, resonator, CO2 laser, holography (about 2.5 h)"], ["study", "Physics Unit 1 fibres: construction, types, attenuation, then solve the 11 fibre numericals (about 2 h)"], ["revise", "Night recall, 20 min: write the 5 definitions and sketch the CO2 laser level diagram without looking"]] },
+    { d: "2026-11-14", b: [["study", "Physics Unit 2 derivations: de Broglie, wave function, both Schrödinger equations (about 2.5 h)"], ["study", "Particle in a box, tunneling and STM, quantum computing, then the quantum numericals (about 2 h)"], ["revise", "Revise Unit 1 for 30 min: redo 3 fibre numericals and redraw the holography setup"]] },
+    { d: "2026-11-15", b: [["study", "FPL Unit 1: algorithm, flowchart, tokens, data types, storage classes, then write 4 programs by hand (about 2.5 h)"], ["study", "FPL Unit 2: operators, precedence, then write the cube, square root and sizeof programs (about 2 h)"], ["revise", "Rewrite the Schrödinger derivation from memory (30 min)"]] },
+    { d: "2026-11-16", b: [["study", "Maths Unit 1 part 1: Rolle, Lagrange, Taylor, Maclaurin. Question bank problems 1 to 11 (about 3 h)"], ["study", "Maths Unit 1 part 2: Fourier series, full and half range. Problems 12 to 15 (about 2.5 h)"], ["revise", "Rewrite all 7 FPL programs from memory (30 min)"]] },
+    { d: "2026-11-17", b: [["revise", "Physics final revision: formula sheet, 5 diagrams, each 6M derivation once more (about 2.5 h)"], ["revise", "FPL final revision: definitions, operator table, 7 programs (about 2 h)"], ["study", "Maths Unit 2: partial derivatives, Laplace equation, Euler's theorem, problems 1 to 8 (about 2 h). Sleep by 11 PM."]] },
+    { d: "2026-11-18", exam: "Physics", b: [["exam", "Physics exam, 9:00 to 10:00 AM"], ["revise", "After the exam, 1.5 h: last FPL revision. Programs and output tracing."], ["study", "Maths Unit 2: composite functions, total derivative, Euler second order, problems 9 to 15 (about 2.5 h)"], ["revise", "Read the Maths formula page (20 min)"]] },
+    { d: "2026-11-19", exam: "FPL", b: [["exam", "FPL exam, 9:00 to 10:00 AM"], ["study", "Maths Units 1 and 2: timed practice at 8 minutes per problem (about 3 h)"], ["revise", "Write one A4 formula page for Maths (30 min)"]] },
+    { d: "2026-11-20", exam: "Maths-I", b: [["revise", "Morning: read the Maths formula page twice (30 min)"], ["exam", "Maths-I exam, 9:00 to 10:00 AM"], ["study", "BEE Unit 1: power system diagram, network types, star-delta derivation, KVL and loop analysis (about 2.5 h)"]] },
+    { d: "2026-11-21", b: [["study", "BEE Unit 1 numericals: loop analysis and superposition, 6 problems (about 2 h)"], ["study", "BEE Unit 2 theory: magnetic circuit, air gap circuit, Faraday's laws, inductance (about 2.5 h)"], ["revise", "Redraw the power system diagram and rewrite the star-delta derivation (30 min)"]] },
+    { d: "2026-11-22", b: [["study", "BEE Unit 2 numericals: reluctance and flux, mutual inductance, 5 problems (about 2 h)"], ["study", "Solve Q1 and Q2 of the Nov 2025 paper in 60 minutes, then check yourself (about 1.5 h)"], ["revise", "Formula page and 3 diagrams: air gap ring, equivalent electrical circuit, power system (40 min)"]] },
+    { d: "2026-11-23", exam: "BEE", b: [["revise", "Morning: formula page only (30 min)"], ["exam", "BEE exam, 9:00 to 10:00 AM"], ["rest", "Rest for the evening. Graphics starts tomorrow."]] },
+    { d: "2026-11-24", b: [["study", "Graphics Unit 1: instruments, sheet layout, lines, dimensioning, points in all quadrants. Draw 4 point problems (about 2 h)"], ["revise", "Redraw one point problem without looking (20 min)"]] },
+    { d: "2026-11-25", b: [["study", "Lines parallel to both planes and perpendicular to one plane: 4 problems (about 2 h)"], ["revise", "Redo yesterday's hardest point problem (20 min)"]] },
+    { d: "2026-11-26", b: [["study", "Lines inclined to one plane and parallel to the other, then inclined to both planes: 4 problems (about 2 h)"], ["revise", "Redraw one line problem from Tuesday and one from Wednesday (30 min)"]] },
+    { d: "2026-11-27", b: [["study", "Planes parallel to one plane and perpendicular to the other: 3 problems (about 2 h)"], ["revise", "Redo one line inclined to both planes (30 min)"]] },
+    { d: "2026-11-28", b: [["study", "Planes inclined to one plane and perpendicular to the other: 4 problems, two stages each (about 2 h)"], ["revise", "Redo one plane problem from Friday (20 min)"]] },
+    { d: "2026-11-29", b: [["study", "Planes inclined to both planes: 4 problems, three stages each (about 2.5 h)"], ["revise", "Redo one problem of every type, quickly (30 min)"]] },
+    { d: "2026-11-30", b: [["study", "Mixed set: 2 line problems and 2 plane problems, 25 minutes each (about 2 h)"], ["revise", "Check your solutions against the rules: true length, inclinations, stages (20 min)"]] },
+    { d: "2026-12-01", b: [["study", "Mixed set again, timed. Spend the extra time on your weakest type (about 2 h)"], ["revise", "Redraw your two weakest problems (30 min)"]] },
+    { d: "2026-12-02", b: [["study", "Final timed set: one problem of each type, 25 minutes each (about 2 h)"], ["revise", "Dimensioning and line types, quick review (20 min)"]] },
+    { d: "2026-12-03", b: [["revise", "Light revision: one problem of each type. Pack H and HB pencils, set squares, compass, eraser, sheet."], ["rest", "Early night."]] },
+    { d: "2026-12-04", exam: "Graphics", b: [["exam", "Graphics exam, 9:00 to 10:00 AM"]] }
+  ];
+
+  var FORMULAS = [
+    { s: "Physics", rows: [
+      ["Critical angle", "sin &theta;c = n&#8322; / n&#8321;"],
+      ["Acceptance angle (fibre in air)", "sin &theta;a = &radic;(n&#8321;&sup2; &minus; n&#8322;&sup2;)"],
+      ["Numerical aperture", "NA = sin &theta;a = &radic;(n&#8321;&sup2; &minus; n&#8322;&sup2;) = n&#8321;&radic;(2&Delta;)"],
+      ["Fractional index change", "&Delta; = (n&#8321; &minus; n&#8322;) / n&#8321;"],
+      ["Acceptance cone angle", "2 &theta;a"],
+      ["Core and cladding", "Core index n&#8321; is always larger than cladding index n&#8322;"],
+      ["de Broglie wavelength", "&lambda; = h / mv = h / &radic;(2mE)"],
+      ["Electron through V volts", "&lambda; = h / &radic;(2meV) = 12.27 / &radic;V angstrom"],
+      ["Particle in a 1D box", "E&#8345; = n&sup2;h&sup2; / (8ma&sup2;), n = 1, 2, 3 ..."],
+      ["Normalization", "&int; |&psi;|&sup2; dx = 1 over all space"],
+      ["Constants", "h = 6.63 &times; 10&#8315;&sup3;&#8308; J s, m&#8337; = 9.1 &times; 10&#8315;&sup3;&sup1; kg, e = 1.6 &times; 10&#8315;&sup1;&#8313; C, 1 &Aring; = 10&#8315;&sup1;&#8304; m"]
+    ] },
+    { s: "FPL (C)", rows: [
+      ["Program skeleton", "#include &lt;stdio.h&gt;  int main() { ... return 0; }"],
+      ["Format specifiers", "%d int, %f float, %c char, %s string"],
+      ["Symbolic constant", "#define PI 3.1428"],
+      ["Precedence, high to low", "( ) &nbsp;&gt;&nbsp; ! ++ -- sizeof &nbsp;&gt;&nbsp; * / % &nbsp;&gt;&nbsp; + - &nbsp;&gt;&nbsp; &lt; &lt;= &gt; &gt;= &nbsp;&gt;&nbsp; == != &nbsp;&gt;&nbsp; && &nbsp;&gt;&nbsp; || &nbsp;&gt;&nbsp; ?: &nbsp;&gt;&nbsp; = += -="],
+      ["Associativity", "Arithmetic: left to right. Unary and assignment: right to left."],
+      ["auto", "Local variable, default storage, garbage value, block scope"],
+      ["static", "Keeps its value between calls, initialised once, default 0"],
+      ["extern", "Declares a global variable defined elsewhere"],
+      ["Prefix vs postfix", "++a changes first then uses; a++ uses first then changes"],
+      ["Logical operator output (a=5, b=5, c=10)", "1, 0, 1, 0, 1 for the five printf lines in the question bank"]
+    ] },
+    { s: "Maths-I", rows: [
+      ["Rolle's theorem", "f continuous on [a, b], differentiable on (a, b), f(a) = f(b) &rArr; f&prime;(c) = 0"],
+      ["Lagrange's MVT", "f&prime;(c) = [f(b) &minus; f(a)] / (b &minus; a)"],
+      ["Cauchy's MVT", "f&prime;(c) / g&prime;(c) = [f(b) &minus; f(a)] / [g(b) &minus; g(a)]"],
+      ["L'Hospital's rule", "For 0/0 or &infin;/&infin;: lim f/g = lim f&prime;/g&prime;"],
+      ["Taylor series", "f(x) = f(a) + (x &minus; a)f&prime;(a) + (x &minus; a)&sup2;f&Prime;(a)/2! + ..."],
+      ["Maclaurin series", "f(x) = f(0) + x f&prime;(0) + x&sup2;f&Prime;(0)/2! + ..."],
+      ["Standard series", "e&#739; = 1 + x + x&sup2;/2! + ...;  sin x = x &minus; x&sup3;/3! + x&#8309;/5! ...;  cos x = 1 &minus; x&sup2;/2! + x&#8308;/4! ...;  log(1+x) = x &minus; x&sup2;/2 + x&sup3;/3 ..."],
+      ["Fourier series on (&minus;&pi;, &pi;)", "f = a&#8320;/2 + &Sigma;(a&#8345; cos nx + b&#8345; sin nx)"],
+      ["Coefficients", "a&#8320; = (1/&pi;)&int; f dx,  a&#8345; = (1/&pi;)&int; f cos nx dx,  b&#8345; = (1/&pi;)&int; f sin nx dx"],
+      ["Even and odd shortcuts", "Even f: b&#8345; = 0.  Odd f: a&#8320; = a&#8345; = 0."],
+      ["Half range on (0, &pi;)", "Cosine: a&#8345; = (2/&pi;)&int; f cos nx dx.  Sine: b&#8345; = (2/&pi;)&int; f sin nx dx."],
+      ["Check values", "x&sup2; on (&minus;&pi;, &pi;): a&#8320; = 2&pi;&sup2;/3, a&#8345; = 4(&minus;1)&#8319;/n&sup2;, b&#8345; = 0"],
+      ["Euler, first order", "x u<sub>x</sub> + y u<sub>y</sub> = n u"],
+      ["Euler, second order", "x&sup2;u<sub>xx</sub> + 2xy u<sub>xy</sub> + y&sup2;u<sub>yy</sub> = n(n &minus; 1) u"],
+      ["Chain rule", "dz/dt = (&part;z/&part;x)(dx/dt) + (&part;z/&part;y)(dy/dt)"]
+    ] },
+    { s: "BEE", rows: [
+      ["Ohm's law", "V = I R"],
+      ["Kirchhoff", "KCL: sum of currents at a node = 0.  KVL: sum of voltages around a loop = 0."],
+      ["Delta to star", "Each star resistor = (product of the two adjacent delta resistors) / (sum of all three)"],
+      ["Star to delta", "Each delta resistor = (sum of pairwise products of star resistors) / (opposite star resistor)"],
+      ["Superposition", "Short voltage sources, open current sources, add the individual currents with signs"],
+      ["MMF", "MMF = N I (ampere turns)"],
+      ["Reluctance", "S = l / (&mu;&#8320; &mu;r A)  (AT/Wb)"],
+      ["Flux", "&phi; = MMF / (S iron + S air gap)  (Wb)"],
+      ["B and H", "B = &phi; / A (tesla),  H = N I / l,  B = &mu;&#8320; &mu;r H"],
+      ["Constant", "&mu;&#8320; = 4&pi; &times; 10&#8315;&#8311; H/m"],
+      ["Faraday", "e = N d&phi;/dt.  Dynamically induced: e = B l v."],
+      ["Self inductance", "L = N&sup2; / S = N&phi; / I"],
+      ["Energy stored", "E = &frac12; L I&sup2;"],
+      ["Mutual inductance", "M = k &radic;(L&#8321; L&#8322;), with k &le; 1. Perfect coupling: k = 1."],
+      ["Electric vs magnetic", "EMF &harr; MMF, current &harr; flux, resistance &harr; reluctance, conductivity &harr; permeability"],
+      ["Units to convert", "1 cm&sup2; = 0.0001 m&sup2;, 1 cm = 0.01 m, 1 mm = 0.001 m"]
+    ] },
+    { s: "Graphics", rows: [
+      ["Reference planes", "HP is horizontal, VP is vertical, XY is the line where they meet"],
+      ["Quadrant 1", "Front view above XY, top view below XY"],
+      ["Quadrant 2", "Both views above XY"],
+      ["Quadrant 3", "Front view below XY, top view above XY"],
+      ["Quadrant 4", "Both views below XY"],
+      ["Line parallel to a plane", "Its view on that plane is true length and shows the true inclination to the other plane"],
+      ["Line perpendicular to a plane", "Its view on that plane is a point"],
+      ["Plane parallel to a plane", "Its view on that plane is the true shape"],
+      ["Stage method for planes", "Draw the true shape first, tilt it by the first angle, project, then tilt again by the second angle"],
+      ["Line conventions", "Construction lines thin and light, visible edges thick and dark, hidden edges dashed"]
+    ] }
+  ];
+
+  var KEY = 'fe-ut1-guide-v1';
+  var state = { learn: {}, revise: {}, done: {}, subject: 'phy' };
+  var TABS = ['today', 'subjects', 'plan', 'cheat-sheet'];
+  var current = 'today';
+  var armed = false;
+  var timer = null;
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) {
+        var o = JSON.parse(raw);
+        state.learn = o.learn || {};
+        state.revise = o.revise || {};
+        state.done = o.done || {};
+        state.subject = o.subject || 'phy';
+      }
+    } catch (e) { /* storage unavailable, keep defaults */ }
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+  }
+
+  function byId(id) { for (var i = 0; i < SUBJECTS.length; i++) { if (SUBJECTS[i].id === id) return SUBJECTS[i]; } return SUBJECTS[0]; }
+  function topicsOf(s) { var a = []; s.units.forEach(function (u) { u.topics.forEach(function (t) { a.push(t); }); }); return a; }
+  function subjProgress(s) {
+    var ts = topicsOf(s), l = 0, r = 0;
+    ts.forEach(function (t) { if (state.learn[t.id]) l++; if (state.revise[t.id]) r++; });
+    return { total: ts.length, learn: l, revise: r, pct: Math.round(((l + r) / (2 * ts.length)) * 100) };
+  }
+  function overall() {
+    var tot = 0, done = 0;
+    SUBJECTS.forEach(function (s) { var p = subjProgress(s); tot += p.total * 2; done += p.learn + p.revise; });
+    return Math.round((done / tot) * 100);
+  }
+  function todayIST() {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  }
+  function fmtDay(iso) {
+    return new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(iso + 'T00:00:00Z'));
+  }
+  function examTime(s) { return new Date(s.exam + 'T09:00:00+05:30').getTime(); }
+  function nextExam() {
+    var now = Date.now(), best = null;
+    SUBJECTS.forEach(function (s) { var t = examTime(s); if (t > now && (!best || t < examTime(best))) best = s; });
+    return best;
+  }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  var KIND = { study: 'Study', revise: 'Revise', exam: 'Exam', rest: 'Rest' };
+  var TICK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+  function blockHtml(day, i, b) {
+    var key = day.d + ':' + i;
+    var on = !!state.done[key];
+    return '<div class="block' + (on ? ' done' : '') + '">' +
+      '<button class="chk" data-act="done" data-key="' + key + '" data-fk="d' + key + '" aria-pressed="' + on + '" aria-label="Mark done: ' + esc(b[1]) + '">' + TICK + '</button>' +
+      '<div class="body"><span class="kind ' + b[0] + '">' + KIND[b[0]] + '</span><p>' + esc(b[1]) + '</p></div></div>';
+  }
+  function dayCard(day, t, big) {
+    var isToday = day.d === t, past = day.d < t;
+    var head = '<div class="row between"><h3>' + fmtDay(day.d) + '</h3>' +
+      (day.exam ? '<span class="tag exam">' + esc(day.exam) + ' exam</span>' : (isToday ? '<span class="tag">Today</span>' : '')) + '</div>';
+    var blocks = day.b.map(function (b, i) { return blockHtml(day, i, b); }).join('');
+    return '<section class="card day' + (isToday ? ' today' : '') + (past && !big ? ' past' : '') + '">' + head + '<div>' + blocks + '</div></section>';
+  }
+
+  function viewToday() {
+    var t = todayIST();
+    var day = null;
+    for (var i = 0; i < SCHEDULE.length; i++) { if (SCHEDULE[i].d >= t) { day = SCHEDULE[i]; break; } }
+    var ne = nextExam();
+    var hero;
+    if (ne) {
+      hero = '<section class="card hero"><div class="row between"><span class="muted small">Next exam</span><span class="tag" style="--h:' + ne.h + '">' + esc(ne.short) + '</span></div>' +
+        '<h1>' + esc(ne.name) + '</h1><p class="muted">' + esc(ne.when) + '. Units 1 and 2, 30 marks, offline.</p>' +
+        '<div class="cd" id="cd" role="timer" aria-label="Time left"></div></section>';
+    } else {
+      hero = '<section class="card hero"><h1>All five exams are done</h1><p class="muted">Unit Test 1 is over. Rest well.</p></section>';
+    }
+    var plan;
+    if (day) {
+      plan = '<div><h2 style="margin-bottom:12px">' + (day.d === t ? 'Today' : 'Starts ' + fmtDay(day.d)) + '</h2>' + dayCard(day, t, true) + '</div>';
+    } else {
+      plan = '';
+    }
+    var rows = SUBJECTS.map(function (s) {
+      var p = subjProgress(s);
+      return '<button class="card" style="text-align:left;gap:8px" data-act="open" data-s="' + s.id + '" data-fk="o' + s.id + '">' +
+        '<div class="row between"><b>' + esc(s.short) + '</b><span class="muted small num">' + p.pct + '%</span></div>' +
+        '<div class="bar" role="progressbar" aria-valuenow="' + p.pct + '" aria-valuemin="0" aria-valuemax="100" aria-label="' + esc(s.short) + ' progress"><span style="width:' + p.pct + '%"></span></div>' +
+        '<span class="muted small">' + p.learn + ' of ' + p.total + ' learned, ' + p.revise + ' revised. Exam ' + fmtDay(s.exam) + '</span></button>';
+    }).join('');
+    var all = overall();
+    return hero + plan +
+      '<div><div class="row between" style="margin-bottom:12px"><h2>Syllabus progress</h2><span class="num muted">' + all + '% overall</span></div>' +
+      '<div class="bar ok" style="margin-bottom:16px"><span style="width:' + all + '%"></span></div>' +
+      '<div class="grid">' + rows + '</div></div>';
+  }
+
+  function viewSubjects() {
+    var s = byId(state.subject), p = subjProgress(s);
+    var chips = SUBJECTS.map(function (x) {
+      return '<button class="chip" data-act="subj" data-s="' + x.id + '" data-fk="c' + x.id + '" aria-pressed="' + (x.id === s.id) + '">' + esc(x.short) + '</button>';
+    }).join('');
+    var units = s.units.map(function (u) {
+      var rows = u.topics.map(function (tp) {
+        var l = !!state.learn[tp.id], r = !!state.revise[tp.id];
+        return '<div class="topic"><div class="head"><h4>' + esc(tp.t) + '</h4><span class="mk">' + esc(tp.m) + '</span></div>' +
+          '<p class="muted small">' + esc(tp.n) + '</p>' +
+          '<div class="tog-row"><button class="tog learn" data-act="tog" data-k="learn" data-id="' + tp.id + '" data-fk="l' + tp.id + '" aria-pressed="' + l + '">Learned</button>' +
+          '<button class="tog revise" data-act="tog" data-k="revise" data-id="' + tp.id + '" data-fk="r' + tp.id + '" aria-pressed="' + r + '">Revised</button></div></div>';
+      }).join('');
+      return '<section class="card"><h3>' + esc(u.name) + '</h3><div>' + rows + '</div></section>';
+    }).join('');
+    var files = s.files.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('');
+    return '<h1>Subjects</h1><div class="chips" role="group" aria-label="Choose subject">' + chips + '</div>' +
+      '<section class="card"><div class="row between"><h2>' + esc(s.name) + '</h2><span class="tag exam">' + esc(s.when) + '</span></div>' +
+      '<div class="bar" role="progressbar" aria-valuenow="' + p.pct + '" aria-valuemin="0" aria-valuemax="100" aria-label="Subject progress"><span style="width:' + p.pct + '%"></span></div>' +
+      '<p class="muted small">' + p.learn + ' of ' + p.total + ' topics learned, ' + p.revise + ' revised. Mark Learned after you can explain it, Revised after you can write it from memory.</p>' +
+      '<div><h3 style="margin-bottom:8px;font-size:0.95rem">Drive files to use</h3><ul class="files">' + files + '</ul></div></section>' + units;
+  }
+
+  function viewPlan() {
+    var t = todayIST();
+    var rhythm = '<section class="card"><h2>How revision works</h2><div class="steps">' +
+      '<div class="step"><b>Same night</b><span class="muted small">10 to 20 minutes. Close the notes and write the definitions, diagram or formula from memory.</span></div>' +
+      '<div class="step"><b>Next day</b><span class="muted small">Redo one numerical or derivation from yesterday before starting new work.</span></div>' +
+      '<div class="step"><b>Two days later</b><span class="muted small">Rewrite one 6M answer in full. Mark Revised only if you finished without looking.</span></div>' +
+      '<div class="step"><b>Night before the exam</b><span class="muted small">Formula page and diagrams only. Learn nothing new and sleep 6 to 7 hours.</span></div></div></section>';
+    var method = '<section class="card"><h2>How to write each answer in 1 hour</h2><div class="steps">' +
+      '<div class="step"><b>6M, about 10 min</b><span class="muted small">One line definition, a labelled diagram, 4 to 5 steps or points, final result or formula.</span></div>' +
+      '<div class="step"><b>3-4M, about 5 min</b><span class="muted small">Definition or formula, one diagram or example, 3 points.</span></div>' +
+      '<div class="step"><b>1M, about 1 min</b><span class="muted small">One line. Move on.</span></div>' +
+      '<div class="step"><b>Numerical</b><span class="muted small">Given data, formula, substitution, answer with unit. Units lose marks.</span></div>' +
+      '<div class="step"><b>If you blank out</b><span class="muted small">Write the given data, draw the diagram, write the starting law and its first line. Partial marks come from these.</span></div>' +
+      '<div class="step"><b>Last 5 minutes</b><span class="muted small">Attempt every question you skipped. A blank earns nothing.</span></div></div></section>';
+    var days = SCHEDULE.map(function (d) { return dayCard(d, t, false); }).join('');
+    return '<h1>Plan</h1>' + rhythm + method + '<div><h2 style="margin-bottom:12px">Day by day, 13 Nov to 4 Dec</h2><div class="grid">' + days + '</div></div>';
+  }
+
+  function viewCheat() {
+    var items = FORMULAS.map(function (f, i) {
+      var rows = f.rows.map(function (r) { return '<div class="eqr"><span class="eql">' + r[0] + '</span><span class="eq">' + r[1] + '</span></div>'; }).join('');
+      return '<details' + (i === 0 ? ' open' : '') + '><summary>' + esc(f.s) + '</summary><div class="eqs">' + rows + '</div></details>';
+    }).join('');
+    var reset = '<section class="card"><h3>Progress</h3><p class="muted small">Your ticks are saved in this browser only. Resetting clears all of them.</p>' +
+      '<div class="row"><button class="btn danger" data-act="reset" data-fk="reset">' + (armed ? 'Tap again to erase all progress' : 'Reset progress') + '</button>' +
+      (armed ? '<button class="btn" data-act="cancel" data-fk="cancel">Keep my progress</button>' : '') + '</div></section>';
+    return '<h1>Formulas</h1><p class="muted">Copy each subject onto one A4 page and read it the night before.</p><section class="card" style="gap:0">' + items + '</section>' + reset;
+  }
+
+  function startCountdown() {
+    if (timer) { clearInterval(timer); timer = null; }
+    var el = document.getElementById('cd');
+    var ne = nextExam();
+    if (!el || !ne) return;
+    function tick() {
+      var ms = examTime(ne) - Date.now();
+      if (ms < 0) { ms = 0; }
+      var d = Math.floor(ms / 86400000), h = Math.floor(ms / 3600000) % 24, m = Math.floor(ms / 60000) % 60;
+      el.innerHTML = '<div><b>' + d + '</b><span>days</span></div><div><b>' + h + '</b><span>hours</span></div><div><b>' + m + '</b><span>minutes</span></div>';
+    }
+    tick();
+    timer = setInterval(tick, 30000);
+  }
+
+  function render(focusKey) {
+    var main = document.getElementById('main');
+    var html = current === 'subjects' ? viewSubjects() : current === 'plan' ? viewPlan() : current === 'cheat-sheet' ? viewCheat() : viewToday();
+    main.innerHTML = html;
+    var links = document.querySelectorAll('.nav a');
+    for (var i = 0; i < links.length; i++) {
+      if (links[i].getAttribute('data-tab') === current) links[i].setAttribute('aria-current', 'page');
+      else links[i].removeAttribute('aria-current');
+    }
+    if (current === 'today') startCountdown();
+    else if (timer) { clearInterval(timer); timer = null; }
+    if (focusKey) {
+      var f = main.querySelector('[data-fk="' + focusKey + '"]');
+      if (f) f.focus({ preventScroll: true });
+    }
+  }
+
+  function route() {
+    var h = (location.hash || '').replace('#', '');
+    if (TABS.indexOf(h) < 0) h = 'today';
+    current = h;
+    armed = false;
+    render();
+    window.scrollTo(0, 0);
+  }
+
+  document.addEventListener('click', function (ev) {
+    var el = ev.target.closest('[data-act]');
+    if (!el) return;
+    var act = el.getAttribute('data-act');
+    var fk = el.getAttribute('data-fk');
+    if (act === 'done') {
+      var k = el.getAttribute('data-key');
+      if (state.done[k]) delete state.done[k]; else state.done[k] = true;
+      save(); render(fk);
+    } else if (act === 'tog') {
+      var kind = el.getAttribute('data-k'), id = el.getAttribute('data-id');
+      if (state[kind][id]) delete state[kind][id]; else state[kind][id] = true;
+      save(); render(fk);
+    } else if (act === 'subj') {
+      state.subject = el.getAttribute('data-s');
+      save(); render(fk);
+    } else if (act === 'open') {
+      state.subject = el.getAttribute('data-s');
+      save();
+      if (location.hash === '#subjects') route(); else location.hash = 'subjects';
+    } else if (act === 'reset') {
+      if (!armed) { armed = true; render('reset'); }
+      else { state.learn = {}; state.revise = {}; state.done = {}; armed = false; save(); render('reset'); }
+    } else if (act === 'cancel') {
+      armed = false; render('reset');
+    }
+  });
+
+  window.addEventListener('hashchange', route);
+  load();
+  route();
+})();
+</script>
+
+</body></html>
